@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chia Tiền Cơm Trưa</title>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+  :root{--pri:#ee4d2d;--pri2:#ff7a59;--bg:#f6f6f8;--card:#fff;--txt:#222;--mut:#888;--ok:#16a34a;--bd:#eee}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt)}
+  header{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;padding:18px 16px 50px}
+  header h1{margin:0;font-size:22px}
+  header p{margin:4px 0 0;opacity:.9;font-size:13px}
+  .wrap{max-width:760px;margin:-36px auto 40px;padding:0 12px}
+  .card{background:var(--card);border-radius:14px;padding:16px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.05)}
+  .card h2{margin:0 0 12px;font-size:16px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .drop{border:2px dashed #f3b3a5;border-radius:12px;padding:26px 12px;text-align:center;cursor:pointer;color:var(--mut);transition:.2s}
+  .drop.over,.drop:hover{background:#fff4f1;border-color:var(--pri);color:var(--pri)}
+  .drop b{color:var(--pri)}
+  .thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .thumbs img{height:90px;border-radius:8px;border:1px solid var(--bd)}
+  button{font:inherit;border:0;border-radius:10px;padding:9px 14px;cursor:pointer;background:#f1f1f1;color:var(--txt)}
+  button.pri{background:var(--pri);color:#fff}
+  button.ok{background:var(--ok);color:#fff}
+  button.sm{padding:5px 10px;font-size:13px}
+  button.ghost{background:transparent;color:var(--mut)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  input[type=text],input[type=number],input[type=date]{font:inherit;padding:8px 10px;border:1px solid #ddd;border-radius:8px;width:100%}
+  table{width:100%;border-collapse:collapse}
+  td,th{padding:7px 4px;border-bottom:1px solid var(--bd);text-align:left;font-size:14px}
+  th{color:var(--mut);font-weight:500;font-size:12px}
+  .r{text-align:right}
+  .mut{color:var(--mut);font-size:12px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .progress{height:6px;background:#eee;border-radius:9px;overflow:hidden;margin-top:10px;display:none}
+  .progress div{height:100%;width:0;background:var(--pri);transition:.2s}
+  .person{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}
+  .person:last-child{border-bottom:0}
+  .avatar{width:38px;height:38px;border-radius:50%;background:#fde3dc;color:var(--pri);display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+  .person .info{flex:1;min-width:0}
+  .person .name{font-weight:600}
+  .person .amt{font-weight:700;color:var(--pri);font-size:16px;white-space:nowrap}
+  .total{display:flex;justify-content:space-between;font-weight:700;padding-top:10px;font-size:15px}
+  .tag{font-size:11px;background:#fde3dc;color:var(--pri);padding:2px 6px;border-radius:6px;margin-left:4px}
+  .empty{text-align:center;color:var(--mut);padding:18px 0;font-size:14px}
+  details{border-top:1px solid var(--bd);padding:8px 0}
+  summary{cursor:pointer;font-size:14px}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:9}
+  .toast.show{opacity:1}
+  .paid{color:var(--ok)}
+  .strike{text-decoration:line-through;color:var(--mut)}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center;z-index:8;padding:12px}
+  .modal{background:#fff;border-radius:14px;padding:18px;max-width:420px;width:100%}
+  .modal h3{margin:0 0 8px}
+  textarea{font:inherit;padding:8px 10px;border:1px solid #ddd;border-radius:8px;width:100%;resize:vertical;margin:4px 0 6px}
+  .vars code{background:#fde3dc;color:var(--pri);padding:1px 5px;border-radius:5px;cursor:pointer;font-size:12px;line-height:2}
+  .pv{flex:1;min-width:220px;background:#f6f6f8;border-radius:8px;padding:10px;font:13px/1.5 inherit;white-space:pre-wrap;margin:6px 0 0}
+  input[type=password]{font:inherit;padding:8px 10px;border:1px solid #ddd;border-radius:8px;width:100%}
+  .login{max-width:360px;margin:-36px auto 40px;padding:0 12px}
+  .login input{margin-bottom:10px}
+  header .hbtn{float:right;background:rgba(255,255,255,.2);color:#fff}
+  .v-big{font-size:30px;font-weight:800;color:var(--pri);text-align:center;margin:6px 0}
+  .qr{display:block;margin:6px auto;width:240px;max-width:100%;border-radius:10px}
+  .kv{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px}
+  .kv:last-child{border-bottom:0}
+  .kv b{word-break:break-all}
+</style>
+</head>
+<body>
+<header>
+  <button class="sm hbtn" id="logoutBtn" style="display:none">Đăng xuất</button>
+  <h1 id="hTitle">🍱 Chia Tiền Cơm Trưa</h1>
+  <p id="hSub">Thả ảnh bill → tự đọc số tiền → cộng dồn đến khi bạn xác nhận đã nhận tiền</p>
+</header>
+
+<!-- ===== Viewer (link cho mọi người) ===== -->
+<div class="wrap" id="viewer" style="display:none"></div>
+
+<!-- ===== Login ===== -->
+<div class="login" id="loginView" style="display:none">
+  <div class="card">
+    <h2 id="loginTitle">🔐 Đăng nhập</h2>
+    <input type="text" id="lgUser" placeholder="Tên đăng nhập" autocomplete="username">
+    <input type="password" id="lgPass" placeholder="Mật khẩu" autocomplete="current-password">
+    <input type="password" id="lgPass2" placeholder="Nhập lại mật khẩu" style="display:none" autocomplete="new-password">
+    <label class="mut row" style="margin-bottom:10px"><input type="checkbox" id="lgRemember" checked> Ghi nhớ đăng nhập trên máy này</label>
+    <button class="pri" id="lgBtn" style="width:100%">Đăng nhập</button>
+    <div class="mut" id="lgMsg" style="margin-top:8px"></div>
+  </div>
+</div>
+
+<div class="wrap" id="adminApp" style="display:none">
+
+  <!-- Settings -->
+  <div class="card">
+    <h2>⚙️ Tên của tôi (người trả tiền)</h2>
+    <input type="text" id="myName" placeholder="VD: Phucclerkly – phần của bạn sẽ không bị tính nợ">
+    <input type="text" id="bank" placeholder="STK nhận tiền, VD: 02805609501 (TP Bank)" style="margin-top:8px">
+    <div class="mut" style="margin-top:6px">Dòng có chữ <b>Host</b> trong bill hoặc trùng tên này sẽ tự bỏ qua. STK ghi kèm tên ngân hàng để tạo QR (VD: TP Bank, Vietcombank, MB…).</div>
+    <input type="text" id="siteUrl" placeholder="Địa chỉ site public, VD: https://ten.github.io/chiatien/" style="margin-top:8px">
+    <div class="mut" id="siteHint" style="margin-top:6px"></div>
+    <div class="row" style="margin-top:10px;justify-content:flex-end"><button class="sm" id="changePass">🔑 Đổi tài khoản / mật khẩu</button></div>
+  </div>
+
+  <!-- Templates -->
+  <div class="card">
+    <details id="tplCard" style="border:0;padding:0">
+      <summary style="font-weight:600;font-size:16px">✉️ Mẫu tin nhắn</summary>
+      <div class="mut vars" style="margin:10px 0">Biến dùng được (bấm để copy):
+        <code>{ten_toi}</code> <code>{stk}</code> <code>{tong}</code> <code>{hom_nay}</code> <code>{ten}</code> <code>{so_bua}</code> <code>{link}</code><br>
+        Tin nhóm: <code>{danh_sach}</code> <code>{so_nguoi}</code> · Tin từng người: <code>{chi_tiet}</code> · Dòng chi tiết: <code>{ngay}</code> <code>{ghi_chu}</code> <code>{tien}</code><br>
+        Dòng có biến trống (VD chưa nhập STK) sẽ tự ẩn.</div>
+      <label class="mut">Tin nhắn cả nhóm</label>
+      <textarea id="tpl_group" rows="6"></textarea>
+      <label class="mut">↳ Mỗi dòng trong {danh_sach}</label>
+      <input type="text" id="tpl_groupLine">
+      <label class="mut" style="display:block;margin-top:12px">Tin nhắn từng người</label>
+      <textarea id="tpl_person" rows="6"></textarea>
+      <label class="mut">↳ Mỗi dòng trong {chi_tiet}</label>
+      <input type="text" id="tpl_personLine">
+      <div class="mut" style="margin-top:12px">Xem trước:</div>
+      <div class="row" style="align-items:stretch">
+        <pre class="pv" id="pvGroup"></pre><pre class="pv" id="pvPerson"></pre>
+      </div>
+      <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="sm" id="tplReset">↺ Khôi phục mặc định</button></div>
+    </details>
+  </div>
+
+  <!-- Upload -->
+  <div class="card">
+    <h2>📸 Thêm bill mới</h2>
+    <div class="drop" id="drop">
+      <div style="font-size:32px">🧾</div>
+      <div><b>Bấm để chọn ảnh</b>, kéo thả, hoặc <b>Ctrl/⌘ + V</b> để dán</div>
+      <div class="mut">Có thể chọn nhiều ảnh chụp cùng 1 bill (cuộn màn hình)</div>
+    </div>
+    <div class="row" style="justify-content:center;margin-top:10px">
+      <span class="mut">hoặc</span>
+      <button class="sm" id="manualBtn">✍️ Nhập thủ công</button>
+    </div>
+    <input type="file" id="file" accept="image/*" multiple hidden>
+    <div class="thumbs" id="thumbs"></div>
+    <div class="progress" id="prog"><div></div></div>
+    <div class="mut" id="status" style="margin-top:6px"></div>
+
+    <div id="review" style="display:none;margin-top:12px">
+      <div class="row" style="margin-bottom:8px">
+        <label class="mut">Ngày bill</label>
+        <input type="date" id="billDate" style="width:auto">
+        <input type="text" id="billNote" placeholder="Ghi chú (VD: Cơm gà)" style="flex:1;min-width:140px">
+      </div>
+      <table>
+        <thead><tr><th style="width:28px"></th><th>Tên</th><th class="r" style="width:120px">Số tiền</th><th style="width:30px"></th></tr></thead>
+        <tbody id="reviewBody"></tbody>
+      </table>
+      <div id="chips" class="row" style="margin-top:8px"></div>
+      <div class="row" style="justify-content:space-between;margin-top:10px">
+        <button class="sm" id="addRow">+ Thêm dòng</button>
+        <span class="mut">Tổng tính nợ: <b id="reviewTotal">0đ</b></span>
+      </div>
+      <div class="row" style="margin-top:12px;justify-content:flex-end">
+        <button class="ghost" id="cancelReview">Huỷ</button>
+        <button class="pri" id="saveBill">✓ Lưu bill & cộng dồn</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Debts -->
+  <div class="card">
+    <h2>💰 Đang nợ tôi <button class="sm" id="copyMsg">📋 Copy tin nhắn</button></h2>
+    <div id="debts"></div>
+  </div>
+
+  <!-- History -->
+  <div class="card">
+    <h2>🗂 Lịch sử bill
+      <span class="row">
+        <button class="sm" id="exportBtn">Xuất</button>
+        <button class="sm" id="importBtn">Nhập</button>
+      </span>
+    </h2>
+    <input type="file" id="importFile" accept="application/json" hidden>
+    <div id="history"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+<datalist id="knownNames"></datalist>
+
+<script>
+// ================= Storage =================
+const KEY = 'chiatien_v1';
+let db = JSON.parse(localStorage.getItem(KEY) || '{"myName":"","bills":[],"payments":[]}');
+const save = () => localStorage.setItem(KEY, JSON.stringify(db));
+
+const $ = s => document.querySelector(s);
+const fmt = n => Math.round(n).toLocaleString('vi-VN') + 'đ';
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const norm = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').toLowerCase().replace(/[^a-z0-9]/g, '');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today = () => new Date().toISOString().slice(0, 10);
+
+function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 2200); }
+
+function lev(a, b) {
+  const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let p = Array.from({length: n + 1}, (_, i) => i);
+  for (let i = 1; i <= m; i++) { const c = [i]; for (let j = 1; j <= n; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); p = c; }
+  return p[n];
+}
+function knownPeople() { const s = new Map(); db.bills.forEach(b => b.items.forEach(i => s.set(norm(i.name), i.name))); return s; }
+// Ghép tên OCR với tên đã có (sai lệch nhỏ do OCR)
+function matchKnown(name) {
+  const k = norm(name); if (!k) return name;
+  const known = knownPeople(); if (known.has(k)) return known.get(k);
+  let best = null, bd = 99;
+  known.forEach((v, kk) => { const d = lev(k, kk); if (d < bd) { bd = d; best = v; } });
+  return best && bd <= Math.max(1, Math.floor(k.length / 5)) ? best : name;
+}
+
+// ================= Settings =================
+$('#myName').value = db.myName || '';
+$('#myName').addEventListener('input', e => { db.myName = e.target.value.trim(); save(); render(); });
+if (db.bank == null) { db.bank = '02805609501 (TP Bank)'; save(); }
+$('#bank').value = db.bank;
+$('#bank').addEventListener('input', e => { db.bank = e.target.value.trim(); save(); });
+
+// ================= Upload & OCR =================
+const drop = $('#drop'), fileIn = $('#file');
+drop.onclick = () => fileIn.click();
+fileIn.onchange = e => handleFiles([...e.target.files]);
+['dragover', 'dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => handleFiles([...e.dataTransfer.files].filter(f => f.type.startsWith('image/'))));
+document.addEventListener('paste', e => {
+  const files = [...(e.clipboardData?.items || [])].filter(i => i.type.startsWith('image/')).map(i => i.getAsFile());
+  if (files.length) handleFiles(files);
+});
+
+function preprocess(file) {
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = img.width < 1200 ? 2 : 1;
+      const c = document.createElement('canvas'); c.width = img.width * scale; c.height = img.height * scale;
+      const ctx = c.getContext('2d'); ctx.imageSmoothingQuality = 'high'; ctx.drawImage(img, 0, 0, c.width, c.height);
+      const d = ctx.getImageData(0, 0, c.width, c.height), p = d.data;
+      for (let i = 0; i < p.length; i += 4) {
+        let g = 0.299 * p[i] + 0.587 * p[i + 1] + 0.114 * p[i + 2];
+        g = g > 200 ? 255 : g < 120 ? 0 : (g - 120) * 255 / 80; // tăng tương phản
+        p[i] = p[i + 1] = p[i + 2] = g;
+      }
+      ctx.putImageData(d, 0, 0);
+      res(c);
+    };
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+const AMT_RE = /(\d{1,3}(?:[.,]\s?\d{3})+|\d{4,7})\s*(?:đ|₫|ð|d\b|vnd)?/i;
+const SKIP_RE = /^(members|split|bill|generate|send|total|tong|subtotal|phi|ship|discount|giam|voucher|lte)/i;
+
+function parseText(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const out = []; let lastName = '', lastHost = false;
+  for (const raw of lines) {
+    const line = raw.replace(/\s+/g, ' ');
+    const isHostLine = /host/i.test(line);
+    const m = line.match(AMT_RE);
+    // bỏ qua dòng "x items", giờ, %
+    if (/^\d+\s*items?$/i.test(line) || /\d+\s*items?/i.test(line) && !m) continue;
+    if (!m || /\d{1,2}:\d{2}/.test(line) && !/[đ₫]/.test(line)) {
+      const cand = line.replace(/host/ig, '').replace(/[^\p{L}\p{N}\s._-]/gu, '').trim();
+      if (cand && /\p{L}{2,}/u.test(cand) && !SKIP_RE.test(norm(cand)) && !/items?/i.test(cand)) { lastName = cand; lastHost = isHostLine; }
+      continue;
+    }
+    const amount = parseInt(m[1].replace(/[.,\s]/g, ''), 10);
+    if (!amount || amount < 1000 || amount > 5000000) continue;
+    let name = line.slice(0, m.index).replace(/host/ig, '').replace(/\d+\s*items?/ig, '');
+    name = name.replace(/^[^\p{L}]+/u, '').replace(/[^\p{L}\p{N}\s._-]/gu, '').replace(/\s+[a-zA-Z]$/,'').trim();
+    if (!name || !/\p{L}{2,}/u.test(name)) name = lastName;
+    if (!name || SKIP_RE.test(norm(name))) { lastName = ''; continue; }
+    const host = isHostLine || (name === lastName && lastHost);
+    out.push({ name, amount, host });
+    lastName = ''; lastHost = false;
+  }
+  return out;
+}
+
+let reviewItems = [];
+async function handleFiles(files) {
+  if (!files.length) return;
+  const thumbs = $('#thumbs'); thumbs.innerHTML = '';
+  files.forEach(f => { const i = document.createElement('img'); i.src = URL.createObjectURL(f); thumbs.appendChild(i); });
+  const prog = $('#prog'), bar = prog.firstElementChild, st = $('#status');
+  prog.style.display = 'block'; bar.style.width = '0';
+  let all = [];
+  try {
+    for (let k = 0; k < files.length; k++) {
+      st.textContent = `Đang đọc ảnh ${k + 1}/${files.length}... (lần đầu sẽ tải dữ liệu OCR, chờ chút)`;
+      const canvas = await preprocess(files[k]);
+      const { data } = await Tesseract.recognize(canvas, 'vie+eng', {
+        logger: m => { if (m.status === 'recognizing text') bar.style.width = ((k + m.progress) / files.length * 100) + '%'; }
+      });
+      all = all.concat(parseText(data.text));
+    }
+  } catch (err) { st.textContent = '❌ Lỗi OCR: ' + err.message + ' — bạn có thể nhập tay.'; console.error(err); }
+  prog.style.display = 'none';
+  // gộp trùng (ảnh chụp chồng lấn của cùng 1 bill)
+  const seen = new Map();
+  all.forEach(it => { const k = norm(it.name); if (!seen.has(k)) seen.set(k, it); });
+  const me = norm(db.myName);
+  reviewItems = [...seen.values()].map(it => {
+    const name = matchKnown(it.name);
+    const isMe = it.host || (me && (norm(name) === me || lev(norm(name), me) <= 1));
+    return { name, amount: it.amount, include: !isMe, host: isMe };
+  });
+  if (!st.textContent.startsWith('❌')) st.textContent = reviewItems.length ? `✅ Đọc được ${reviewItems.length} người. Kiểm tra lại trước khi lưu nhé.` : '⚠️ Không đọc được dòng nào, hãy nhập tay.';
+  if (!reviewItems.length) reviewItems.push({ name: '', amount: 0, include: true });
+  openReview();
+}
+
+function openReview() {
+  $('#review').style.display = 'block';
+  $('#billDate').value = today();
+  renderReview();
+}
+function renderReview() {
+  const names = [...knownPeople().values()];
+  $('#knownNames').innerHTML = names.map(n => `<option value="${esc(n)}">`).join('');
+  $('#reviewBody').innerHTML = reviewItems.map((it, i) => `
+    <tr>
+      <td><input type="checkbox" data-i="${i}" data-f="include" ${it.include ? 'checked' : ''}></td>
+      <td><input type="text" list="knownNames" data-i="${i}" data-f="name" value="${esc(it.name)}" placeholder="Tên">
+        ${it.host ? '<span class="tag">Host / Tôi</span>' : ''}</td>
+      <td><input type="text" inputmode="decimal" class="r" data-i="${i}" data-f="amount" value="${it.amount ? it.amount.toLocaleString('vi-VN') : ''}" placeholder="35k"></td>
+      <td><button class="ghost sm" data-del="${i}">✕</button></td>
+    </tr>`).join('');
+  updateReviewTotal();
+  renderChips();
+}
+// "35k" -> 35000, "35.000" -> 35000, "1tr2" -> 1200000
+function parseAmount(v) {
+  v = String(v).toLowerCase().replace(/\s|đ|₫|vnd/g, '');
+  let m;
+  if ((m = v.match(/^(\d+(?:[.,]\d+)?)(k|n|ng)$/))) return Math.round(parseFloat(m[1].replace(',', '.')) * 1000);
+  if ((m = v.match(/^(\d+(?:[.,]\d+)?)(tr|m)(\d*)$/))) return Math.round(parseFloat(m[1].replace(',', '.')) * 1e6 + (m[3] ? +('0.' + m[3]) * 1e6 : 0));
+  return parseInt(v.replace(/[.,]/g, ''), 10) || 0;
+}
+function renderChips() {
+  const inBill = new Set(reviewItems.map(i => norm(i.name)));
+  const me = norm(db.myName);
+  const rest = [...knownPeople().values()].filter(n => !inBill.has(norm(n)) && norm(n) !== me);
+  $('#chips').innerHTML = rest.length ? '<span class="mut">Thêm nhanh:</span>' +
+    rest.map(n => `<button class="sm" data-chip="${esc(n)}">+ ${esc(n)}</button>`).join('') : '';
+}
+$('#chips').addEventListener('click', e => {
+  const n = e.target.dataset.chip; if (n == null) return;
+  const empty = reviewItems.findIndex(i => !i.name.trim() && !i.amount);
+  if (empty >= 0) reviewItems[empty].name = n; else reviewItems.push({ name: n, amount: 0, include: true });
+  renderReview();
+  const idx = empty >= 0 ? empty : reviewItems.length - 1;
+  document.querySelector(`[data-i="${idx}"][data-f="amount"]`)?.focus();
+});
+$('#manualBtn').onclick = () => {
+  closeReview();
+  reviewItems = [{ name: '', amount: 0, include: true }];
+  $('#status').textContent = '✍️ Nhập tên và số tiền từng người (gõ được 35k, 35.000…). Enter để xuống dòng mới.';
+  openReview();
+  document.querySelector('[data-i="0"][data-f="name"]')?.focus();
+};
+function updateReviewTotal() {
+  $('#reviewTotal').textContent = fmt(reviewItems.filter(i => i.include).reduce((s, i) => s + (+i.amount || 0), 0));
+}
+$('#reviewBody').addEventListener('input', e => {
+  const i = e.target.dataset.i, f = e.target.dataset.f; if (i == null) return;
+  reviewItems[i][f] = f === 'include' ? e.target.checked : f === 'amount' ? parseAmount(e.target.value) : e.target.value;
+  updateReviewTotal();
+});
+$('#reviewBody').addEventListener('change', e => {
+  if (e.target.dataset.f === 'amount') { const v = reviewItems[e.target.dataset.i].amount; e.target.value = v ? v.toLocaleString('vi-VN') : ''; }
+  if (e.target.dataset.f === 'name') renderChips();
+});
+$('#reviewBody').addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || e.target.dataset.i == null) return;
+  e.preventDefault();
+  const i = +e.target.dataset.i;
+  if (e.target.dataset.f === 'name') return document.querySelector(`[data-i="${i}"][data-f="amount"]`)?.focus();
+  if (i === reviewItems.length - 1) { reviewItems.push({ name: '', amount: 0, include: true }); renderReview(); }
+  document.querySelector(`[data-i="${i + 1}"][data-f="name"]`)?.focus();
+});
+$('#reviewBody').addEventListener('click', e => {
+  if (e.target.dataset.del != null) { reviewItems.splice(+e.target.dataset.del, 1); renderReview(); }
+});
+$('#addRow').onclick = () => { reviewItems.push({ name: '', amount: 0, include: true }); renderReview(); };
+$('#cancelReview').onclick = closeReview;
+function closeReview() { $('#review').style.display = 'none'; $('#thumbs').innerHTML = ''; $('#status').textContent = ''; fileIn.value = ''; reviewItems = []; }
+
+$('#saveBill').onclick = () => {
+  const items = reviewItems.filter(i => i.include && i.name.trim() && +i.amount > 0)
+    .map(i => ({ id: uid(), name: matchKnown(i.name.trim()), amount: Math.round(+i.amount), paid: false, paidAt: null }));
+  if (!items.length) return toast('Chưa có dòng hợp lệ nào');
+  db.bills.unshift({ id: uid(), date: $('#billDate').value || today(), note: $('#billNote').value.trim(), items, createdAt: Date.now() });
+  save(); closeReview(); $('#billNote').value = ''; render(); toast('Đã lưu bill & cộng dồn ✓');
+};
+
+// ================= Debts =================
+function debts() {
+  const map = new Map();
+  db.bills.forEach(b => b.items.forEach(it => {
+    if (it.paid) return;
+    const k = norm(it.name);
+    if (!map.has(k)) map.set(k, { name: it.name, total: 0, count: 0, items: [] });
+    const p = map.get(k); p.total += it.amount; p.count++; p.items.push({ ...it, date: b.date, note: b.note });
+  }));
+  return [...map.values()].sort((a, b) => b.total - a.total);
+}
+
+function render() {
+  const list = debts();
+  const el = $('#debts');
+  if (!list.length) el.innerHTML = '<div class="empty">🎉 Không ai nợ cả!</div>';
+  else el.innerHTML = list.map(p => `
+    <div class="person">
+      <div class="avatar">${esc(p.name.trim()[0]?.toUpperCase() || '?')}</div>
+      <div class="info">
+        <div class="name">${esc(p.name)}</div>
+        <div class="mut">${p.count} bill · ${p.items.map(i => i.date.slice(5).split('-').reverse().join('/')).join(', ')}</div>
+      </div>
+      <div class="amt">${fmt(p.total)}</div>
+      <button class="sm" data-link="${esc(norm(p.name))}" title="Copy link xem bill">🔗</button>
+      <button class="sm" data-copy="${esc(norm(p.name))}" title="Copy tin nhắn cho người này">📋</button>
+      <button class="ok sm" data-pay="${esc(norm(p.name))}">Đã trả</button>
+    </div>`).join('') +
+    `<div class="total"><span>Tổng cần thu</span><span style="color:var(--pri)">${fmt(list.reduce((s, p) => s + p.total, 0))}</span></div>`;
+
+  const h = $('#history');
+  if (!db.bills.length) { h.innerHTML = '<div class="empty">Chưa có bill nào</div>'; return; }
+  h.innerHTML = db.bills.map(b => {
+    const tot = b.items.reduce((s, i) => s + i.amount, 0), unpaid = b.items.filter(i => !i.paid).length;
+    return `<details>
+      <summary><b>${b.date.split('-').reverse().join('/')}</b> ${b.note ? '· ' + esc(b.note) : ''} — ${fmt(tot)}
+        <span class="mut">(${unpaid ? unpaid + ' chưa trả' : '<span class="paid">đã thu đủ</span>'})</span></summary>
+      <table>${b.items.map(i => `<tr><td class="${i.paid ? 'strike' : ''}">${esc(i.name)}</td><td class="r ${i.paid ? 'strike' : ''}">${fmt(i.amount)}</td>
+        <td class="r" style="width:90px">${i.paid ? '<span class="paid">✓ đã trả</span>' : '<span class="mut">chưa</span>'}</td></tr>`).join('')}</table>
+      <div class="row" style="justify-content:flex-end;margin-top:6px"><button class="sm ghost" data-delbill="${b.id}">🗑 Xoá bill</button></div>
+    </details>`;
+  }).join('');
+}
+
+function modal(html) { $('#modal').innerHTML = html; $('#modalBg').style.display = 'flex'; }
+function closeModal() { $('#modalBg').style.display = 'none'; }
+$('#modalBg').addEventListener('click', e => { if (e.target.id === 'modalBg' || e.target.dataset.close != null) closeModal(); });
+
+function copyText(msg, ok) { navigator.clipboard.writeText(msg).then(() => toast(ok), () => prompt('Copy:', msg)); }
+$('#debts').addEventListener('click', e => {
+  const k = e.target.dataset.copy; if (k == null) return;
+  const p = debts().find(x => norm(x.name) === k); if (!p) return;
+  copyText(personMsg(p), `Đã copy tin nhắn cho ${p.name}`);
+});
+$('#debts').addEventListener('click', e => {
+  const k = e.target.dataset.pay; if (k == null) return;
+  const p = debts().find(x => norm(x.name) === k); if (!p) return;
+  modal(`<h3>Xác nhận đã nhận tiền?</h3>
+    <p><b>${esc(p.name)}</b> trả <b style="color:var(--pri)">${fmt(p.total)}</b> cho ${p.count} bill:</p>
+    <div class="mut">${p.items.map(i => `${i.date.split('-').reverse().join('/')} ${i.note ? '(' + esc(i.note) + ')' : ''}: ${fmt(i.amount)}`).join('<br>')}</div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px">
+      <button class="ghost" data-close>Huỷ</button><button class="ok" id="confirmPay">✓ Đã nhận tiền</button></div>`);
+  $('#confirmPay').onclick = () => {
+    const now = Date.now();
+    db.bills.forEach(b => b.items.forEach(it => { if (!it.paid && norm(it.name) === k) { it.paid = true; it.paidAt = now; } }));
+    db.payments.push({ name: p.name, amount: p.total, at: now });
+    save(); closeModal(); render(); toast(`${p.name} đã trả ${fmt(p.total)} ✓`);
+  };
+});
+
+$('#history').addEventListener('click', e => {
+  const id = e.target.dataset.delbill; if (!id) return;
+  if (!confirm('Xoá bill này? Các khoản nợ trong bill sẽ mất.')) return;
+  db.bills = db.bills.filter(b => b.id !== id); save(); render();
+});
+
+$('#copyMsg').onclick = () => {
+  const list = debts(); if (!list.length) return toast('Không có ai nợ');
+  copyText(groupMsg(list), 'Đã copy tin nhắn');
+};
+
+// ================= Message templates =================
+const DEFAULT_TPL = {
+  group: '🍱 Tiền cơm trưa cần chuyển cho {ten_toi}:\n{danh_sach}\nTổng: {tong}\n💳 STK: {stk}\nCảm ơn mọi người! 🙏',
+  groupLine: '• {ten}: {tien} ({so_bua} bữa)',
+  person: '🍱 Hi {ten}, tiền cơm trưa cần chuyển cho {ten_toi}:\n{chi_tiet}\nTổng: {tong}\n💳 STK: {stk}\n👉 Xem chi tiết & QR chuyển khoản: {link}\nCảm ơn nha! 🙏',
+  personLine: '• {ngay}{ghi_chu}: {tien}'
+};
+db.tpl = { ...DEFAULT_TPL, ...(db.tpl || {}) };
+if (db.tpl.person === '🍱 Hi {ten}, tiền cơm trưa cần chuyển cho {ten_toi}:\n{chi_tiet}\nTổng: {tong}\n💳 STK: {stk}\nCảm ơn nha! 🙏') db.tpl.person = DEFAULT_TPL.person; // nâng cấp mẫu cũ
+// Thay {bien}; dòng nào chỉ có biến rỗng (VD chưa nhập STK) thì bỏ luôn dòng đó
+function fill(tpl, vars) {
+  return tpl.split('\n').map(line => {
+    const keys = [...line.matchAll(/\{(\w+)\}/g)].map(m => m[1]);
+    if (keys.length && keys.every(k => vars[k] === '' || vars[k] == null)) return null;
+    return line.replace(/\{(\w+)\}/g, (m, k) => vars[k] ?? m);
+  }).filter(l => l !== null).join('\n');
+}
+const dmy = d => d.split('-').reverse().join('/');
+const baseVars = () => ({ ten_toi: db.myName || 'mình', stk: db.bank || '', hom_nay: dmy(today()) });
+function groupMsg(list) {
+  return fill(db.tpl.group, { ...baseVars(),
+    danh_sach: list.map(p => fill(db.tpl.groupLine, { ...baseVars(), ten: p.name, tien: fmt(p.total), so_bua: p.count, link: personLink(p) })).join('\n'),
+    tong: fmt(list.reduce((s, p) => s + p.total, 0)), so_nguoi: list.length });
+}
+function personMsg(p) {
+  return fill(db.tpl.person, { ...baseVars(), ten: p.name, tong: fmt(p.total), so_bua: p.count, link: personLink(p),
+    chi_tiet: p.items.map(i => fill(db.tpl.personLine, { ...baseVars(), ten: p.name, ngay: dmy(i.date),
+      ghi_chu: i.note ? ` (${i.note})` : '', note: i.note || '', tien: fmt(i.amount) })).join('\n') });
+}
+const SAMPLE = [
+  { name: 'Tiên Trần', total: 34034, count: 1, items: [{ date: today(), note: 'Cơm gà', amount: 34034 }] },
+  { name: 'Khánh Nguyễn', total: 102524, count: 2, items: [{ date: '2026-11-14', note: '', amount: 57524 }, { date: today(), note: 'Cơm gà', amount: 45000 }] }
+];
+function renderPreview() {
+  const list = debts().length ? debts() : SAMPLE;
+  $('#pvGroup').textContent = groupMsg(list);
+  $('#pvPerson').textContent = personMsg(list[list.length - 1]);
+}
+['group', 'groupLine', 'person', 'personLine'].forEach(k => {
+  const el = $('#tpl_' + k); el.value = db.tpl[k];
+  el.addEventListener('input', () => { db.tpl[k] = el.value; save(); renderPreview(); });
+});
+$('#tplReset').onclick = () => {
+  if (!confirm('Khôi phục mẫu tin nhắn mặc định?')) return;
+  db.tpl = { ...DEFAULT_TPL }; save();
+  Object.keys(DEFAULT_TPL).forEach(k => $('#tpl_' + k).value = db.tpl[k]); renderPreview();
+};
+$('#tplCard').addEventListener('toggle', renderPreview);
+document.querySelectorAll('.vars code').forEach(c => c.onclick = () => copyText(c.textContent, 'Đã copy ' + c.textContent));
+
+$('#exportBtn').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' }));
+  a.download = `chiatien-${today()}.json`; a.click();
+};
+$('#importBtn').onclick = () => $('#importFile').click();
+$('#importFile').onchange = async e => {
+  try { const d = JSON.parse(await e.target.files[0].text()); if (!Array.isArray(d.bills)) throw 0;
+    db = { myName: '', payments: [], ...d }; save(); $('#myName').value = db.myName; render(); toast('Đã nhập dữ liệu');
+  } catch { toast('File không hợp lệ'); }
+  e.target.value = '';
+};
+
+
+// ================= Link cho từng người (token chứa dữ liệu) =================
+const b64e = str => btoa(unescape(encodeURIComponent(str))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const b64d = t => decodeURIComponent(escape(atob(t.replace(/-/g, '+').replace(/_/g, '/'))));
+function siteBase() {
+  if (db.siteUrl) return db.siteUrl.split('#')[0];
+  return /^https?:/.test(location.protocol) ? location.origin + location.pathname : '';
+}
+function personLink(p) {
+  const base = siteBase(); if (!base) return '';
+  const data = { v: 1, n: p.name, h: db.myName || '', b: db.bank || '', c: Date.now(),
+    i: p.items.map(i => [i.date, i.note || '', i.amount]) };
+  return base + '#t=' + b64e(JSON.stringify(data));
+}
+$('#siteUrl').value = db.siteUrl || '';
+function siteHint() {
+  $('#siteHint').innerHTML = siteBase()
+    ? `Link gửi mọi người sẽ dạng: <b>${esc(siteBase())}#t=…</b>`
+    : '⚠️ Đang mở file trên máy (file://) nên người khác không mở được link. Hãy đưa file lên host (GitHub Pages, Netlify…) rồi nhập địa chỉ vào ô trên.';
+}
+$('#siteUrl').addEventListener('input', e => { db.siteUrl = e.target.value.trim(); save(); siteHint(); renderPreview(); });
+siteHint();
+$('#debts').addEventListener('click', e => {
+  const k = e.target.dataset.link; if (k == null) return;
+  const p = debts().find(x => norm(x.name) === k); if (!p) return;
+  const link = personLink(p);
+  if (!link) return toast('Chưa có địa chỉ site – nhập ở phần Cài đặt');
+  copyText(link, `Đã copy link của ${p.name}`);
+});
+
+// ================= VietQR =================
+const BANKS = [['tpbank|tp bank|tpb|tien phong','TPB','TPBank'],['vietcombank|vcb','VCB','Vietcombank'],['techcombank|tcb','TCB','Techcombank'],
+  ['mbbank|mb bank|\\bmb\\b|quan doi','MB','MB Bank'],['\\bacb\\b|a chau','ACB','ACB'],['bidv','BIDV','BIDV'],['vietinbank|ctg|icb','ICB','VietinBank'],
+  ['vpbank|vp bank|vpb','VPB','VPBank'],['agribank|vba','VBA','Agribank'],['sacombank|stb','STB','Sacombank'],['\\bvib\\b','VIB','VIB'],['\\bmsb\\b|maritime','MSB','MSB'],
+  ['\\bocb\\b|phuong dong','OCB','OCB'],['hdbank|hd bank|hdb','HDB','HDBank'],['\\bshb\\b','SHB','SHB'],['seabank','SEAB','SeABank'],['eximbank|\\beib\\b','EIB','Eximbank'],
+  ['lpbank|lienviet|\\blpb\\b','LPB','LPBank'],['\\bcake\\b','CAKE','CAKE'],['\\btimo\\b','TIMO','Timo'],['ubank','UBANK','Ubank'],['nam a|namabank','NAB','Nam A Bank'],
+  ['bac a|\\bbab\\b','BAB','Bac A Bank'],['kienlong|\\bklb\\b','KLB','KienlongBank'],['abbank|an binh','ABB','ABBank'],['pvcombank','PVCB','PVcomBank'],['vietbank','VIETBANK','VietBank']];
+function parseBank(str) {
+  const acc = ((str || '').match(/\d[\d\s.-]{5,}\d/) || [''])[0].replace(/\D/g, '');
+  const t = (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  const b = BANKS.find(([re]) => new RegExp(re).test(t));
+  return { acc, code: b?.[1] || '', bankName: b?.[2] || (str || '').replace(/[\d().-]/g, '').trim() };
+}
+const ascii = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').replace(/[^\w ]/g, '');
+
+// ================= Viewer =================
+function showViewer(tok) {
+  let d; try { d = JSON.parse(b64d(tok)); } catch { d = null; }
+  document.title = 'Tiền cơm trưa';
+  $('#hTitle').textContent = '🍱 Tiền cơm trưa';
+  const v = $('#viewer'); v.style.display = 'block';
+  if (!d || !Array.isArray(d.i)) { $('#hSub').textContent = ''; v.innerHTML = '<div class="card empty">❌ Link không hợp lệ hoặc bị cắt mất. Hãy xin lại link nhé.</div>'; return; }
+  const total = d.i.reduce((s, x) => s + x[2], 0);
+  const bk = parseBank(d.b);
+  const content = ascii(`${d.n} tra tien com`).slice(0, 25);
+  $('#hSub').textContent = `Cập nhật lúc ${new Date(d.c).toLocaleString('vi-VN')}`;
+  const qr = bk.code && bk.acc ? `https://img.vietqr.io/image/${bk.code}-${bk.acc}-compact2.png?amount=${total}&addInfo=${encodeURIComponent(content)}${d.h ? '&accountName=' + encodeURIComponent(ascii(d.h)) : ''}` : '';
+  v.innerHTML = `
+    <div class="card">
+      <h2>Hi ${esc(d.n)} 👋</h2>
+      <div class="mut">Bạn cần chuyển cho <b>${esc(d.h || 'người trả tiền')}</b>:</div>
+      <div class="v-big">${fmt(total)}</div>
+      <table>
+        <thead><tr><th>Ngày</th><th>Ghi chú</th><th class="r">Số tiền</th></tr></thead>
+        ${d.i.map(x => `<tr><td>${esc(dmy(x[0]))}</td><td>${esc(x[1] || '–')}</td><td class="r">${fmt(x[2])}</td></tr>`).join('')}
+      </table>
+      <div class="total"><span>Tổng (${d.i.length} bữa)</span><span style="color:var(--pri)">${fmt(total)}</span></div>
+    </div>
+    ${d.b ? `<div class="card">
+      <h2>💳 Chuyển khoản</h2>
+      ${qr ? `<img class="qr" src="${qr}" alt="QR chuyển khoản" onerror="this.remove()"><div class="mut" style="text-align:center;margin-bottom:8px">Mở app ngân hàng → quét QR (đã điền sẵn số tiền & nội dung)</div>` : ''}
+      <div class="kv"><span class="mut">Ngân hàng</span><b>${esc(bk.bankName || d.b)}</b></div>
+      ${bk.acc ? `<div class="kv"><span class="mut">Số tài khoản</span><span class="row"><b>${esc(bk.acc)}</b><button class="sm" data-cp="${esc(bk.acc)}">Copy</button></span></div>` : ''}
+      ${d.h ? `<div class="kv"><span class="mut">Người nhận</span><b>${esc(d.h)}</b></div>` : ''}
+      <div class="kv"><span class="mut">Số tiền</span><span class="row"><b>${fmt(total)}</b><button class="sm" data-cp="${total}">Copy</button></span></div>
+      <div class="kv"><span class="mut">Nội dung</span><span class="row"><b>${esc(content)}</b><button class="sm" data-cp="${esc(content)}">Copy</button></span></div>
+    </div>` : ''}
+    <div class="mut" style="text-align:center">Thông tin tại thời điểm gửi link. Chuyển xong nhắn ${esc(d.h || 'mình')} để xác nhận nhé 🙏</div>`;
+  v.addEventListener('click', e => { const c = e.target.dataset.cp; if (c != null) copyText(c, 'Đã copy: ' + c); });
+}
+
+// ================= Admin login =================
+// SHA-256 thuần JS (chạy được cả khi mở file:// không có crypto.subtle)
+function sha256(msg) {
+  msg = unescape(encodeURIComponent(msg));
+  const K = [], H = [], isP = n => { for (let f = 2; f * f <= n; f++) if (n % f === 0) return false; return true; };
+  const frac = x => ((x - Math.floor(x)) * 0x100000000) | 0;
+  for (let n = 2, c = 0; c < 64; n++) if (isP(n)) { if (c < 8) H[c] = frac(Math.pow(n, 1 / 2)); K[c++] = frac(Math.pow(n, 1 / 3)); }
+  const words = [], l = msg.length * 8;
+  msg += '\x80'; while (msg.length % 64 - 56) msg += '\x00';
+  for (let i = 0; i < msg.length; i++) words[i >> 2] |= msg.charCodeAt(i) << ((3 - i) % 4) * 8;
+  words.push((l / 0x100000000) | 0, l | 0);
+  const r = (v, n) => (v >>> n) | (v << (32 - n));
+  for (let j = 0; j < words.length; j += 16) {
+    const w = words.slice(j, j + 16); let [a, b, c, d, e, f, g, h] = H;
+    for (let i = 0; i < 64; i++) {
+      if (i >= 16) { const x = w[i - 15], y = w[i - 2];
+        w[i] = (w[i - 16] + (r(x, 7) ^ r(x, 18) ^ (x >>> 3)) + w[i - 7] + (r(y, 17) ^ r(y, 19) ^ (y >>> 10))) | 0; }
+      const t1 = (h + (r(e, 6) ^ r(e, 11) ^ r(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + w[i]) | 0;
+      const t2 = ((r(a, 2) ^ r(a, 13) ^ r(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+      h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+    }
+    H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+    H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
+  }
+  return H.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
+}
+const SESSION = 'chiatien_session';
+const hashPass = (u, p, salt) => { let h = salt + '|' + u + '|' + p; for (let i = 0; i < 1000; i++) h = sha256(h + salt); return h; };
+const sessionToken = () => db.auth ? sha256('session|' + db.auth.hash) : '';
+const isLoggedIn = () => db.auth && [sessionStorage.getItem(SESSION), localStorage.getItem(SESSION)].includes(sessionToken());
+
+function showLogin(setup) {
+  $('#loginView').style.display = 'block'; $('#adminApp').style.display = 'none'; $('#logoutBtn').style.display = 'none';
+  $('#loginTitle').textContent = setup ? '🔐 Tạo tài khoản admin' : '🔐 Đăng nhập';
+  $('#lgPass2').style.display = setup ? 'block' : 'none';
+  $('#lgBtn').textContent = setup ? 'Tạo tài khoản' : 'Đăng nhập';
+  $('#lgMsg').textContent = setup ? 'Lần đầu sử dụng: đặt tên đăng nhập & mật khẩu cho trang quản lý.' : '';
+  $('#lgBtn').onclick = () => {
+    const u = $('#lgUser').value.trim(), pw = $('#lgPass').value;
+    if (!u || !pw) return $('#lgMsg').textContent = '⚠️ Nhập đủ tên đăng nhập và mật khẩu';
+    if (setup) {
+      if (pw.length < 4) return $('#lgMsg').textContent = '⚠️ Mật khẩu tối thiểu 4 ký tự';
+      if (pw !== $('#lgPass2').value) return $('#lgMsg').textContent = '⚠️ Mật khẩu nhập lại không khớp';
+      const salt = uid(); db.auth = { user: u, salt, hash: hashPass(u, pw, salt) }; save();
+    } else if (u !== db.auth.user || hashPass(u, pw, db.auth.salt) !== db.auth.hash) {
+      return $('#lgMsg').textContent = '❌ Sai tên đăng nhập hoặc mật khẩu';
+    }
+    ($('#lgRemember').checked ? localStorage : sessionStorage).setItem(SESSION, sessionToken());
+    $('#lgPass').value = $('#lgPass2').value = '';
+    showAdmin();
+  };
+}
+['#lgUser', '#lgPass', '#lgPass2'].forEach(s => $(s).addEventListener('keydown', e => { if (e.key === 'Enter') $('#lgBtn').click(); }));
+function showAdmin() {
+  $('#loginView').style.display = 'none'; $('#adminApp').style.display = 'block'; $('#logoutBtn').style.display = 'inline-block';
+  render();
+}
+$('#logoutBtn').onclick = () => { sessionStorage.removeItem(SESSION); localStorage.removeItem(SESSION); showLogin(false); };
+$('#changePass').onclick = () => {
+  modal(`<h3>🔑 Đổi tài khoản / mật khẩu</h3>
+    <input type="password" id="cpOld" placeholder="Mật khẩu hiện tại" style="margin-bottom:8px">
+    <input type="text" id="cpUser" placeholder="Tên đăng nhập mới" value="${esc(db.auth?.user || '')}" style="margin-bottom:8px">
+    <input type="password" id="cpNew" placeholder="Mật khẩu mới" style="margin-bottom:8px">
+    <div class="mut" id="cpMsg"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:10px"><button class="ghost" data-close>Huỷ</button><button class="pri" id="cpOk">Lưu</button></div>`);
+  $('#cpOk').onclick = () => {
+    const old = $('#cpOld').value, u = $('#cpUser').value.trim(), pw = $('#cpNew').value;
+    if (hashPass(db.auth.user, old, db.auth.salt) !== db.auth.hash) return $('#cpMsg').textContent = '❌ Mật khẩu hiện tại sai';
+    if (!u || pw.length < 4) return $('#cpMsg').textContent = '⚠️ Tên đăng nhập không trống, mật khẩu ≥ 4 ký tự';
+    const salt = uid(); db.auth = { user: u, salt, hash: hashPass(u, pw, salt) }; save();
+    (localStorage.getItem(SESSION) ? localStorage : sessionStorage).setItem(SESSION, sessionToken());
+    closeModal(); toast('Đã đổi tài khoản ✓');
+  };
+};
+
+// ================= Khởi động =================
+const viewTok = new URLSearchParams(location.hash.slice(1)).get('t');
+window.addEventListener('hashchange', () => location.reload());
+if (viewTok) showViewer(viewTok);
+else if (!db.auth) showLogin(true);
+else if (isLoggedIn()) showAdmin();
+else showLogin(false);
+</script>
+</body>
+</html>
