@@ -118,7 +118,7 @@
       <label class="mut">Tin nhắn cả nhóm</label>
       <textarea id="tpl_group" rows="6"></textarea>
       <label class="mut">↳ Mỗi dòng trong {danh_sach}</label>
-      <input type="text" id="tpl_groupLine">
+      <textarea id="tpl_groupLine" rows="2"></textarea>
       <label class="mut" style="display:block;margin-top:12px">Tin nhắn từng người</label>
       <textarea id="tpl_person" rows="6"></textarea>
       <label class="mut">↳ Mỗi dòng trong {chi_tiet}</label>
@@ -494,12 +494,13 @@ $('#copyMsg').onclick = () => {
 // ================= Message templates =================
 const DEFAULT_TPL = {
   group: '🍱 Tiền cơm trưa cần chuyển cho {ten_toi}:\n{danh_sach}\nTổng: {tong}\n💳 STK: {stk}\nCảm ơn mọi người! 🙏',
-  groupLine: '• {ten}: {tien} ({so_bua} bữa)',
+  groupLine: '• {ten}: {tien} ({so_bua} bữa)\n  👉 {link}',
   person: '🍱 Hi {ten}, tiền cơm trưa cần chuyển cho {ten_toi}:\n{chi_tiet}\nTổng: {tong}\n💳 STK: {stk}\n👉 Xem chi tiết & QR chuyển khoản: {link}\nCảm ơn nha! 🙏',
   personLine: '• {ngay}{ghi_chu}: {tien}'
 };
 db.tpl = { ...DEFAULT_TPL, ...(db.tpl || {}) };
 if (db.tpl.person === '🍱 Hi {ten}, tiền cơm trưa cần chuyển cho {ten_toi}:\n{chi_tiet}\nTổng: {tong}\n💳 STK: {stk}\nCảm ơn nha! 🙏') db.tpl.person = DEFAULT_TPL.person; // nâng cấp mẫu cũ
+if (db.tpl.groupLine === '• {ten}: {tien} ({so_bua} bữa)') db.tpl.groupLine = DEFAULT_TPL.groupLine; // nâng cấp mẫu dòng nhóm cũ
 // Thay {bien}; dòng nào chỉ có biến rỗng (VD chưa nhập STK) thì bỏ luôn dòng đó
 function fill(tpl, vars) {
   return tpl.split('\n').map(line => {
