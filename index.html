@@ -65,6 +65,10 @@
   .kv{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd);font-size:14px}
   .kv:last-child{border-bottom:0}
   .kv b{word-break:break-all}
+  .apps{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-top:10px}
+  .appbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 6px;border:1px solid var(--bd);border-radius:10px;background:#fafafa;color:var(--txt);text-decoration:none;font-size:12px;font-weight:600;text-align:center;transition:.15s}
+  .appbtn:hover,.appbtn:active{border-color:var(--pri);background:#fff4f1;color:var(--pri)}
+  .appbtn span{font-size:10px;color:var(--mut);font-weight:400}
 </style>
 </head>
 <body>
@@ -596,6 +600,29 @@ function parseBank(str) {
 const ascii = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[đĐ]/g, 'd').replace(/[^\w ]/g, '');
 
 // ================= Viewer =================
+// Danh sách app ngân hàng phổ biến hỗ trợ VietQR Deeplink (mở thẳng màn hình chuyển khoản kèm STK + số tiền + nội dung)
+const BANK_APPS = [
+  ['tpb', 'TPBank', 'Hydro'],
+  ['vcb', 'Vietcombank', 'VCB Digibank'],
+  ['mb', 'MB Bank', 'MBBank'],
+  ['tcb', 'Techcombank', 'Techcombank Mobile'],
+  ['acb', 'ACB', 'ACB ONE'],
+  ['icb', 'VietinBank', 'iPay'],
+  ['bidv', 'BIDV', 'SmartBanking'],
+  ['vpb', 'VPBank', 'VPBank NEO'],
+  ['stb', 'Sacombank', 'Sacombank Pay'],
+  ['vba', 'Agribank', 'Agribank Plus'],
+  ['vib', 'VIB', 'MyVIB'],
+  ['hdb', 'HDBank', 'HDBank'],
+  ['ocb', 'OCB', 'OCB OMNI'],
+  ['msb', 'MSB', 'MSB mBank'],
+  ['shb', 'SHB', 'SHB Mobile'],
+  ['lpb', 'LPBank', 'LPBank'],
+  ['seab', 'SeABank', 'SeAMobile'],
+  ['cake', 'CAKE', 'CAKE Bank'],
+  ['timo', 'Timo', 'Timo']
+];
+
 function showViewer(tok) {
   let d; try { d = JSON.parse(b64d(tok)); } catch { d = null; }
   document.title = 'Tiền cơm trưa';
@@ -607,6 +634,7 @@ function showViewer(tok) {
   const content = ascii(`${d.n} tra tien com`).slice(0, 25);
   $('#hSub').textContent = `Cập nhật lúc ${new Date(d.c).toLocaleString('vi-VN')}`;
   const qr = bk.code && bk.acc ? `https://img.vietqr.io/image/${bk.code}-${bk.acc}-compact2.png?amount=${total}&addInfo=${encodeURIComponent(content)}${d.h ? '&accountName=' + encodeURIComponent(ascii(d.h)) : ''}` : '';
+  const dlUrl = appId => `https://dl.vietqr.io/pay?app=${appId}&ba=${encodeURIComponent(bk.acc + '@' + bk.code.toLowerCase())}&am=${total}&tn=${encodeURIComponent(content)}${d.h ? '&bn=' + encodeURIComponent(ascii(d.h)) : ''}`;
   v.innerHTML = `
     <div class="card">
       <h2>Hi ${esc(d.n)} 👋</h2>
@@ -620,8 +648,17 @@ function showViewer(tok) {
     </div>
     ${d.b ? `<div class="card">
       <h2>💳 Chuyển khoản</h2>
-      ${qr ? `<img class="qr" src="${qr}" alt="QR chuyển khoản" onerror="this.remove()"><div class="mut" style="text-align:center;margin-bottom:8px">Mở app ngân hàng → quét QR (đã điền sẵn số tiền & nội dung)</div>` : ''}
-      <div class="kv"><span class="mut">Ngân hàng</span><b>${esc(bk.bankName || d.b)}</b></div>
+      ${bk.code && bk.acc ? `
+        <div class="mut" style="margin-bottom:6px">📱 <b>Trên điện thoại:</b> bấm vào ngân hàng bạn đang dùng để mở thẳng màn hình chuyển khoản (đã điền sẵn STK, số tiền & nội dung):</div>
+        <div class="apps">
+          ${BANK_APPS.map(([id, name, sub]) => `<a class="appbtn" href="${esc(dlUrl(id))}">🏦 ${esc(name)}<span>${esc(sub)}</span></a>`).join('')}
+        </div>
+        <div class="row" style="justify-content:center;margin:12px 0 6px">
+          <button class="sm" id="saveQrBtn">⬇️ Tải ảnh QR về máy</button>
+        </div>
+      ` : ''}
+      ${qr ? `<img class="qr" src="${qr}" alt="QR chuyển khoản" onerror="this.remove()"><div class="mut" style="text-align:center;margin-bottom:8px">Hoặc quét mã VietQR bằng bất kỳ app ngân hàng nào</div>` : ''}
+      <div class="kv"><span class="mut">Ngân hàng nhận</span><b>${esc(bk.bankName || d.b)}</b></div>
       ${bk.acc ? `<div class="kv"><span class="mut">Số tài khoản</span><span class="row"><b>${esc(bk.acc)}</b><button class="sm" data-cp="${esc(bk.acc)}">Copy</button></span></div>` : ''}
       ${d.h ? `<div class="kv"><span class="mut">Người nhận</span><b>${esc(d.h)}</b></div>` : ''}
       <div class="kv"><span class="mut">Số tiền</span><span class="row"><b>${fmt(total)}</b><button class="sm" data-cp="${total}">Copy</button></span></div>
@@ -629,6 +666,19 @@ function showViewer(tok) {
     </div>` : ''}
     <div class="mut" style="text-align:center">Thông tin tại thời điểm gửi link. Chuyển xong nhắn ${esc(d.h || 'mình')} để xác nhận nhé 🙏</div>`;
   v.addEventListener('click', e => { const c = e.target.dataset.cp; if (c != null) copyText(c, 'Đã copy: ' + c); });
+  const saveBtn = $('#saveQrBtn');
+  if (saveBtn && qr) {
+    saveBtn.onclick = async () => {
+      try {
+        const blob = await (await fetch(qr)).blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `QR-${ascii(d.n).replace(/\s+/g, '_')}-${total}.png`;
+        a.click();
+        toast('Đã tải ảnh QR ✓');
+      } catch { window.open(qr, '_blank'); }
+    };
+  }
 }
 
 // ================= Admin login =================
